@@ -1,0 +1,40 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: gateway-postgres
+    environment:
+      POSTGRES_DB: gateway
+      POSTGRES_USER: gateway
+      POSTGRES_PASSWORD: gateway_pass
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U gateway -d gateway"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  gateway:
+    build: .
+    container_name: gateway-app
+    ports:
+      - "8080:8080"
+    environment:
+      - DATABASE_URL=postgres://gateway:gateway_pass@postgres:5432/gateway?sslmode=disable
+      - LOG_LEVEL=info
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+    command: sh -c "./migrations/run-migrations.sh && ./gateway -config configs/providers.yaml"
+
+volumes:
+  postgres_data:
+
+networks:
+  default:
+    name: gateway-network

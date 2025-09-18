@@ -27,6 +27,21 @@ go.work.sum
 # env file
 .env
 
+# Personal files (not for open source)
+AGENTS.md
+CLAUDE.md
+.claude/
+dash/
+
+# Built binaries
+gateway
+
+# Config files
+*.local.yaml
+
+# Backup directories
+*-backup/
+
 # Editor/IDE
 # .idea/
 # .vscode/

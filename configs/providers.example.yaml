@@ -1,0 +1,166 @@
+# Flash Gateway Configuration Example
+# Copy this file to providers.yaml and configure according to your needs
+
+server:
+  port: ":8080"
+  read_timeout: 30    # seconds
+  write_timeout: 30   # seconds
+  idle_timeout: 120   # seconds
+
+storage:
+  type: "postgres"
+  postgres:
+    url: "${DATABASE_URL}"  # Environment variable takes precedence
+    host: "localhost"
+    port: 5432
+    database: "gateway"
+    username: "gateway"
+    password: "gateway_pass"
+    ssl_mode: "disable"
+    max_connections: 25
+    max_idle_conns: 5
+    conn_max_lifetime: 60  # minutes
+
+logging:
+  enabled: true
+  buffer_size: 1000        # Channel buffer size
+  batch_size: 10           # Batch insert size
+  flush_interval: "1s"     # Force flush interval
+  workers: 3               # Number of worker goroutines
+  max_body_size: 6553600   # 64KB max body capture
+  skip_health_check: true  # Don't log /health and /status
+  skip_on_error: true      # Don't block requests if logging fails
+
+guardrails:
+  enabled: true            # Enable guardrails system
+  timeout: "5s"            # Timeout for guardrail execution
+  metrics_buffer_size: 1000 # Buffer size for metrics
+  metrics_batch_size: 10    # Batch size for metrics
+  metrics_workers: 2        # Number of metrics workers
+  input_guardrails:
+    # OpenAI Moderation API - blocks harmful content
+    - name: "openai_moderation"
+      type: "openai_moderation"
+      enabled: true
+      priority: 0            # Highest priority (run first)
+      config:
+        api_key: "${OPENAI_API_KEY}"  # Set your OpenAI API key as environment variable
+        block_on_flag: true
+        categories:  # Optional: specify which categories to block on
+          - "hate"
+          - "violence"
+          - "sexual"
+          - "self-harm"
+    # Example guardrail for demonstration (disabled by default)
+    - name: "input_example"
+      type: "example"
+      enabled: false          # Enable this to test the example guardrail
+      priority: 3
+      config:
+        description: "Example input guardrail for demonstration"
+  output_guardrails:
+    # Example guardrail for demonstration (disabled by default)
+    - name: "output_example"
+      type: "example"
+      enabled: false          # Enable this to test the example guardrail
+      priority: 2
+      config:
+        description: "Example output guardrail for demonstration"
+
+providers:
+  - name: openai
+    base_url: https://api.openai.com
+    endpoints:
+      # Responses API - the main endpoint requested
+      - path: /v1/responses
+        methods: ["POST"]
+        headers:
+          Content-Type: application/json
+        timeout: 60
+
+      # Chat Completions API
+      - path: /v1/chat/completions
+        methods: ["POST"]
+        headers:
+          Content-Type: application/json
+        timeout: 60
+
+      # Legacy Completions API
+      - path: /v1/completions
+        methods: ["POST"]
+        headers:
+          Content-Type: application/json
+        timeout: 60
+
+      # Embeddings API
+      - path: /v1/embeddings
+        methods: ["POST"]
+        headers:
+          Content-Type: application/json
+        timeout: 30
+
+      # Models API
+      - path: /v1/models
+        methods: ["GET"]
+        timeout: 10
+
+      # Audio APIs
+      - path: /v1/audio/speech
+        methods: ["POST"]
+        headers:
+          Content-Type: application/json
+        timeout: 60
+
+      - path: /v1/audio/transcriptions
+        methods: ["POST"]
+        timeout: 120
+
+      - path: /v1/audio/translations
+        methods: ["POST"]
+        timeout: 120
+
+      # Images API
+      - path: /v1/images/generations
+        methods: ["POST"]
+        headers:
+          Content-Type: application/json
+        timeout: 120
+
+      - path: /v1/images/edits
+        methods: ["POST"]
+        timeout: 120
+
+      - path: /v1/images/variations
+        methods: ["POST"]
+        timeout: 120
+
+      # Fine-tuning API
+      - path: /v1/fine-tuning/jobs
+        methods: ["GET", "POST"]
+        headers:
+          Content-Type: application/json
+        timeout: 30
+
+      # Files API
+      - path: /v1/files
+        methods: ["GET", "POST"]
+        timeout: 60
+
+      # Assistants API (if needed)
+      - path: /v1/assistants
+        methods: ["GET", "POST"]
+        headers:
+          Content-Type: application/json
+        timeout: 30
+
+# Future providers can be added here
+# Example for Anthropic (commented out for now):
+#  - name: anthropic
+#    base_url: https://api.anthropic.com
+#    endpoints:
+#      - path: /v1/messages
+#        methods: ["POST"]
+#        headers:
+#          Content-Type: application/json
+#          anthropic-version: "2023-06-01"
+#        timeout: 60
