@@ -451,6 +451,91 @@ go test ./...
 docker-compose up -d
 ```
 
+## Dashboard
+
+Flash Gateway includes a web dashboard for monitoring and testing AI gateway traffic.
+
+### Features
+- **Real-time Request Logs**: View all API requests with detailed information
+- **Guardrail Metrics**: Monitor content filtering and safety measures
+- **API Playground**: Test endpoints directly through the web interface
+- **Response Override Tracking**: See when and how guardrails modify responses
+
+### Quick Start
+
+After running the Docker setup, the dashboard is automatically available:
+
+```bash
+# Start all services including dashboard
+docker-compose up -d
+
+# Access points:
+# - Gateway API: http://localhost:8080
+# - Dashboard UI: http://localhost:5173
+# - Dashboard API: http://localhost:4000
+```
+
+### Dashboard Components
+
+#### Request Logs Page
+- Paginated view of all API requests
+- Filterable by endpoint, method, status code
+- Click any row to view full request/response details
+- Real-time updates as new requests come in
+
+#### Guardrail Metrics Page
+- Monitor all guardrail executions
+- See performance metrics (duration, pass/fail rates)
+- Track response overrides when content is blocked
+- Filter by guardrail name, layer (input/output), or status
+
+#### Playground Page
+- Interactive API testing interface
+- Supports both `/v1/chat/completions` and `/v1/responses` endpoints
+- Configurable system prompts
+- Real-time conversation interface
+- Request/response logging in browser console
+
+### Development
+
+The dashboard supports hot-reload during development:
+
+```bash
+# Dashboard runs in development mode by default
+docker-compose up -d
+
+# View dashboard logs
+docker-compose logs -f dashboard
+
+# Rebuild after changes
+docker-compose up --build -d dashboard
+```
+
+### Production Deployment
+
+For production, set the environment to optimize builds:
+
+```bash
+# Set production environment
+NODE_ENV=production docker-compose up --build -d
+```
+
+### Dashboard API Endpoints
+
+- `GET /api/health` - Health check with database status
+- `GET /api/request-logs` - Paginated request logs
+- `GET /api/request-logs/:id` - Individual request details
+- `GET /api/guardrail-metrics` - Paginated guardrail metrics
+
+### Architecture
+
+The dashboard consists of:
+- **Frontend**: React + TypeScript + Vite dev server (port 5173)
+- **Backend**: Express.js API server (port 4000)
+- **Database**: Shared PostgreSQL with gateway for real-time data
+
+All components run in Docker containers with automatic service discovery and health checks.
+
 ## Contributing
 
 We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details.

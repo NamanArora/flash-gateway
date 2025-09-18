@@ -32,6 +32,29 @@ services:
     restart: unless-stopped
     command: sh -c "./migrations/run-migrations.sh && ./gateway -config configs/providers.yaml"
 
+  dashboard:
+    build: ./dash
+    container_name: gateway-dashboard
+    ports:
+      - "4000:4000"  # API server
+      - "5173:5173"  # Frontend
+    environment:
+      - PGHOST=postgres
+      - PGPORT=5432
+      - PGDATABASE=gateway
+      - PGUSER=gateway
+      - PGPASSWORD=gateway_pass
+      - API_PORT=4000
+      - NODE_ENV=development
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+    volumes:
+      # For development, mount source code for hot reload
+      - ./dash:/app:delegated
+      - /app/node_modules  # Prevent node_modules from being overwritten
+
 volumes:
   postgres_data:
 

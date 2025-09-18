@@ -31,7 +31,6 @@ go.work.sum
 AGENTS.md
 CLAUDE.md
 .claude/
-dash/
 
 # Built binaries
 gateway
